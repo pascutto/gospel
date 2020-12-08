@@ -43,7 +43,7 @@
 (*@ function (-)   (x y: integer) : integer *)
 (*@ function ( * ) (x y: integer) : integer *)
 (*@ function (/)   (x y: integer) : integer *)
-(*@ function mod   (x y: integer) : integer *) (* TODO allow infix in the parser*)
+(*@ function mod   (x y: integer) : integer *)
 (*@ function (-_)  (x: integer) : integer *)
 (*@ predicate (>)  (x y: integer) *)
 (*@ predicate (>=) (x y: integer) *)
@@ -69,103 +69,104 @@ type int
 (*@ function max_int : integer *)
 (*@ function min_int : integer *)
 
-
-(** Tuples *)
+(** {1 Couples} *)
 
 (*@ function fst (p: 'a * 'b) : 'a *)
-(*@ function snd (p: 'a * 'b) : 'b *)
+(** [fst (x, y)] is [x]. *)
 
-(** References *)
+(*@ function snd (p: 'a * 'b) : 'b *)
+(** [snd (x, y)] is [y]. *)
+
+(** {1 References} *)
 
 type 'a ref
-(*@ ephemeral *)
-(*@ mutable model contents: 'a *)
+(** The type for references. *)
 
-(*@ function (!_) (r: 'a ref) : 'a = r.contents *)
+(*@ function (!_) (r: 'a ref) : 'a *)
+(** Reference content access operator. *)
 
-(** Sequences
+(*@ function ref (x: 'a) : 'a ref *)
+(** Reference creation. *)
 
-    They are used in the following to model lists and arrays, and possibly other
-    data structures (queues, etc.).
-*)
-
-(*@ type 'a seq *)
-
-(*@ function length (s: 'a seq): integer *)
-
-(*@ function ([_]) (s: 'a seq) (i:integer): 'a *)
-
-(*@ predicate (==) (s1 s2: 'a seq) =
-      length s1 = length s2 &&
-      forall i. 0 <= i < length s1 -> s1[i] = s2[i] *)
-
-(*@ function ([_.._]) (s: 'a seq) (i1: integer) (i2: integer): 'a seq *)
-(*@ function ([_..]) (s: 'a seq) (i: integer): 'a seq *)
-(*@ function ([.._]) (s: 'a seq) (i: integer): 'a seq *)
-
-(*@ function empty: 'a seq *)
-
-(*@ function (++) (s1: 'a seq) (s2: 'a seq): 'a seq *)
+(** {1 Sequences} *)
 
 module Seq : sig
+  type 'a t
+  (** The type for finite sequences. *)
 
-  (* re-export type t and functions length and [_], so that we can refer to them
-     using qualified identifiers (Seq.t, Seq.len, and Seq.get, respectively). *)
-  (*@ function len (s: 'a seq): integer = length s *)
-  (*@ function get (s: 'a seq) (i: integer) : 'a = s[i] *)
+  (*@ predicate equal (x y: 'a t) *)
+  (** Equality predicate over sequences. *)
 
-  (*@ function create (x: integer) (f: integer -> 'a): 'a seq *)
-  (*@ axiom create_len : forall n, f. n >= 0 ->
-        length (create n f) = n *)
-  (*@ axiom create_def : forall n, f. n >= 0 ->
-        forall i. 0 <= i < n -> (create n f)[i] = f i *)
+  (*@ function length (s: 'a t): integer *)
+  (** [length s] is the length of the sequence [s]. *)
 
-  (* TODO : DO WE WANT SOMETHING LIKE THIS ? *)
+  (*@ function empty : 'a t *)
+  (** [empty] is the empty sequence. *)
+
+  (*@ function return (x: 'a) : 'a t *)
+  (** [return x] is the sequence containing only [x]. *)
+
+  (*@ function singleton (x: 'a) : 'a t *)
+  (** [singleton] is an alias for {!return}. *)
+
+  (*@ function cons (x: 'a) (s: 'a t): 'a t *)
+  (** [cons x s] is the sequence containing the element [x] followed by the
+      sequence [s]. *)
+
+  (*@ function append (x y: 'a t) : 'a t *)
+  (** [append x y] is the sequence [x] followed by the sequence [y]. *)
+
+  (*@ function (++) (x y: 'a t) : 'a t *)
+  (** [x ++ y] is [append x y]. *)
+
+  (*@ function map (f: 'a -> 'b) (s: 'a t) : 'b t *)
+  (** [map f s] is a sequence whose elements are the elements of [s],
+      transformed by [f]. *)
+
+  (*@ function filter (f: 'a -> bool) (s: 'a t) : 'a t *)
+  (** [filter f s] is a sequence whose elements are the elements of [s], that
+      satisfy [f]. *)
+
+  (*@ function filter_map (f: 'a -> 'b option) (s: 'a t) : 'b t *)
+  (** [filter_map f s] is a sequence whose elements are the elements of [s],
+      transformed by [f]. An element [x] is dropped whenever [f x] is [None]. *)
+
+  (*@ function get (s: 'a seq) (i: integer) : 'a *)
+  (** [get s i] is the [i]th element of the sequence [s]. *)
+
+  (*@ function ([_]) (s: 'a seq) (i:integer): 'a *)
+  (** [s[i]] is an alias for [get s i]. *)
+
+  (*@ function ([_.._]) (s: 'a seq) (i1: integer) (i2: integer): 'a seq *)
+  (*@ function ([_..]) (s: 'a seq) (i: integer): 'a seq *)
+  (*@ function ([.._]) (s: 'a seq) (i: integer): 'a seq *)
+
   (*@ function create (n: integer) (f: integer -> 'a) : 'a seq *)
-  (*@ requires 0 <= n
-      ensures  length result = n
-      ensures  forall i. 0 <= i < n -> result[i] = f i *)
 
   (*@ function ([<-]) (s: 'a seq) (i: integer) (x: 'a): 'a seq *)
 
-  (*@ function cons (x: 'a) (s: 'a seq): 'a seq *)
   (*@ function snoc (s: 'a seq) (x: 'a): 'a seq *)
 
-  (* FIXME singleton? *)
+  (*@ predicate mem (s: 'a seq) (x: 'a) *)
 
-  (*@ predicate mem (s: 'a seq) (x: 'a) =
-        exists i. 0 <= i < length s && s[i] = x *)
+  (*@ predicate distinct (s: 'a seq) *)
 
-  (*@ predicate distinct (s: 'a seq) =
-        forall i j. 0 <= i < length s -> 0 <= j < length s ->
-        i <> j -> s[i] <> s[j] *)
+  (*@ function rev (s: 'a seq) : 'a seq *)
 
-  (*@ function rev (s: 'a seq) : 'a seq =
-        create (length s) (fun i -> s[length s - 1 - i]) *)
+  (*@ function rec fold_left (f: 'a -> 'b -> 'a) (acc: 'a) (s: 'b seq) : 'a *)
 
-  (*@ function map (f: 'a -> 'b) (s: 'a seq) : 'b seq =
-        create (length s) (fun i -> f s[i]) *)
+  (*@ function rec fold_right (f: 'a -> 'b -> 'b) (s: 'a seq) (acc: 'b) : 'b *)
 
-  (*@ function rec fold_left (f: 'a -> 'b -> 'a) (acc: 'a) (s: 'b seq) : 'a =
-        if length s = 0 then acc
-        else fold_left f (f acc s[0]) s[1 ..] *)
+  (*@ function hd (s: 'a seq) : 'a *)
 
-  (*@ function rec fold_right (f: 'a -> 'b -> 'b) (s: 'a seq) (acc: 'b) : 'b =
-        if length s = 0 then acc
-        else f s[0] (fold_right f s[1 ..] acc) *)
-
-  (*@ function hd (s: 'a seq) : 'a = s[0] *)
-  (*@ function tl (s: 'a seq) : 'a seq = s[1 ..] *)
+  (*@ function tl (s: 'a seq) : 'a seq *)
 
   (* Sorted sequences of int values *)
   (*@ predicate sorted_sub (s: int seq) (l u: integer) =
         forall i1 i2. l <= i1 <= i2 < u -> s[i1] <= s[i2] *)
+
   (*@ predicate sorted (s: int seq) =
         sorted_sub s 0 (length s) *)
-
-  (* hd, tl, rev, mem *)
-  (* higher-order: map, fold, exists, forall, find, partition *)
-  (* assoc, mem_assoc? split, combine? *)
 end
 
 module SeqPerm : sig
@@ -254,101 +255,117 @@ module Order : sig
 end
 
 module Bag : sig
+  (*@ type 'a t *)
+  (** The type for finite sets. *)
 
-  (*@ type 'a bag *)
+  (*@ function occurences (x: 'a) (b: 'a t): integer *)
+  (** [occurences x b] is the number of occurences of [x] in [s]. *)
 
-  (*@ function nb_occ (x: 'a) (b: 'a bag): integer *)
+  (*@ predicate equal (s s': 'a t) *)
+  (** [equal s s'] is [s = s']. *)
 
-  (*@ axiom occ_non_negative: forall b: 'a bag, x: 'a.
-        nb_occ x b >= 0 *)
+  (*@ function empty : 'a t *)
+  (** [empty] is [∅]. *)
 
-  (*@ predicate mem (x: 'a) (b: 'a bag) =
-        nb_occ x b > 0 *)
+  (*@ predicate is_empty (s: 'a t) *)
+  (** [is_empty s] is [s = ∅]. *)
 
-  (*@ predicate eq_bag (a b: 'a bag) =
-        forall x:'a. nb_occ x a = nb_occ x b *)
+  (*@ predicate mem (x: 'a) (s: 'a t) *)
+  (** [mem x s] is [x ∈ s]. *)
 
-  (*@ axiom bag_extensionality: forall a b: 'a bag.
-        eq_bag a b -> a = b *)
+  (*@ function add (x: 'a) (s: 'a t) : 'a t *)
+  (** [add x s] is [s ∪ {x}]. *)
 
-  (*@ function empty_bag: 'a bag *)
+  (*@ function singleton (x: 'a) : 'a t *)
+  (** [singleton x] is [{x}]. *)
 
-  (*@ axiom occ_empty: forall x: 'a. nb_occ x empty_bag = 0 *)
+  (*@ function remove (x: 'a) (s: 'a t) : 'a t *)
+  (** [remove x s] is [s ∖ {x}]. *)
 
-  (*@ function singleton (x: 'a) : 'a bag *)
+  (*@ function union (x: 'a t) (y: 'a t) : 'a t *)
+  (** [union x y] is [x ∪ y]. *)
 
-  (*@ axiom occ_singleton: forall x y: 'a.
-        nb_occ y (singleton x) = if x = y then 1 else 0 *)
+  (*@ function inter (x: 'a t) (y: 'a t) : 'a t *)
+  (** [inter x y] is [x ∩ y]. *)
 
-  (*@ function union (x:'a bag) (y:'a bag) : 'a bag *)
+  (*@ predicate disjoint (x: 'a t) (y: 'a t) *)
+  (** [disjoint x y] is [x ∩ y = ∅]. *)
 
-  (* axiom occ_union: forall x: 'a, a b: 'a bag.
-      nb_occ x (union a b) = nb_occ x a + nb_occ x b *)
+  (*@ function diff (x: 'a t) (y: 'a t) : 'a t *)
+  (** [diff x y] is [x ∖ y]. *)
 
-    (** add operation *)
+  (*@ predicate subset (x: 'a t) (y: 'a t) *)
+  (** [subset x y] is [x ⊂ y].*)
 
-  (*@ function add (x: 'a) (b: 'a bag) : 'a bag =
-        union (singleton x) b *)
+  (*@ function cardinal (y: 'a t) : integer *)
+  (** [cardinal s] is the number of elements in [s]. *)
 
-  (** cardinality of bags *)
+  (*@ function choose (s: 'a t) : integer *)
+  (** [choose s] is an arbitrary element of [s]. *)
 
-  (*@ function card (x:'a bag): integer *)
-
-  (*@ axiom card_nonneg: forall x: 'a bag.
-        card x >= 0 *)
-
-  (*@ axiom card_empty: card (empty_bag: 'a bag) = 0 *)
-
-  (*@ axiom card_zero_empty: forall x: 'a bag.
-        card x = 0 -> x = empty_bag *)
-
-  (*@ axiom card_singleton: forall x:'a.
-        card (singleton x) = 1 *)
-
-  (*@ axiom card_union: forall x y: 'a bag.
-        card (union x y) = card x + card y *)
-
-  (** bag difference *)
-
-  (*@ function diff (x: 'a bag) (y: 'a bag) : 'a bag *)
-
-  (*@ axiom diff_occ: forall b1 b2: 'a bag, x:'a.
-      nb_occ x (diff b1 b2) = max 0 (nb_occ x b1 - nb_occ x b2) *)
-
-  (** arbitrary element *)
-
-  (*@ function choose (b: 'a bag) : 'a *)
-
-  (*@ axiom choose_mem: forall b: 'a bag.
-        empty_bag <> b -> mem (choose b) b *)
-
+  (*@ function fold (f: 'a -> 'b -> 'b) (s: 'a t) : 'b *)
+  (** [fold f s] is [(f xN ... (f x2 (f x1 a))...)], where [x1 ... xN] are the
+      elements of s. *)
 end
 
 module Set : sig
+  (*@ type 'a t *)
+  (** The type for finite sets. *)
 
-  (*@ type 'a set *)
+  (*@ predicate equal (s s': 'a t) *)
+  (** [equal s s'] is [s = s']. *)
 
-  (*@ predicate mem (x: 'a) (s: 'a set) *)
+  (*@ function empty : 'a t *)
+  (** [empty] is [∅]. *)
 
-  (*@ function ( {} ) : 'a set *)
+  (*@ predicate is_empty (s: 'a t) *)
+  (** [is_empty s] is [s = ∅]. *)
 
-  (*@ function ( {:_:} ) (x: 'a) : 'a set *)
+  (*@ predicate mem (x: 'a) (s: 'a t) *)
+  (** [mem x s] is [x ∈ s]. *)
 
-  (*@ function union (x:'a set) (y:'a set) : 'a set *)
+  (*@ function add (x: 'a) (s: 'a t) : 'a t *)
+  (** [add x s] is [s ∪ {x}]. *)
 
-  (*@ function sum (f:'a -> integer) (x: 'a set) : integer *)
+  (*@ function singleton (x: 'a) : 'a t *)
+  (** [singleton x] is [{x}]. *)
 
+  (*@ function remove (x: 'a) (s: 'a t) : 'a t *)
+  (** [remove x s] is [s ∖ {x}]. *)
+
+  (*@ function union (x y: 'a t) : 'a t *)
+  (** [union x y] is [x ∪ y]. *)
+
+  (*@ function inter (x y: 'a t) : 'a t *)
+  (** [inter x y] is [x ∩ y]. *)
+
+  (*@ predicate disjoint (x y: 'a t) *)
+  (** [disjoint x y] is [x ∩ y = ∅]. *)
+
+  (*@ function diff (x y: 'a t) : 'a t *)
+  (** [diff x y] is [x ∖ y]. *)
+
+  (*@ predicate subset (x y: 'a t) *)
+  (** [subset x y] is [x ⊂ y].*)
+
+  (*@ function cardinal (s: 'a t) : integer *)
+  (** [cardinal s] is the number of elements in [s]. *)
+
+  (*@ function choose (s: 'a t) : integer *)
+  (** [choose s] is an arbitrary element of [s]. *)
+
+  (*@ function fold (f: 'a -> 'b -> 'b) (s: 'a t) : 'b *)
+  (** [fold f s] is [(f xN ... (f x2 (f x1 a))...)], where [x1 ... xN] are the
+     elements of s. *)
 end
 
 module Map : sig
-
   (* the type ('a, 'b) map is defined internally in GOSPEL and can be
      written as 'a -> 'b *)
 
   (*@ function ( [<-] ) (m: 'a -> 'b) (x:'a) (y: 'b) : 'a -> 'b *)
 
   (*@ function ( [_] ) (m: 'a -> 'b) (x: 'a) : 'b *)
-
 end
 
 module Peano : sig

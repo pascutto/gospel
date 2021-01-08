@@ -317,8 +317,7 @@ let f_iff      = f_binop Tiff
 
 (** Pretty printing *)
 
-open Opprintast
-open Fmt
+open Utils.Fmt
 
 let print_vs fmt {vs_name; vs_ty} =
   pp fmt "@[%a:%a@]" Ident.pp vs_name print_ty vs_ty
@@ -331,7 +330,7 @@ let print_ls_decl fmt {ls_name;ls_args;ls_value} =
     Ident.pp ls_name
     (list ~sep:sp print_unnamed_arg) ls_args
     (if is_func then " : " else "")
-    (Fmt.option print_ty) ls_value
+    (option print_ty) ls_value
 
 let print_ls_nm fmt {ls_name} =
   pp fmt "%a" Ident.pp ls_name
@@ -380,7 +379,7 @@ let rec print_term fmt {t_node; t_ty; t_attrs; _ } =
       None -> pp fmt ":prop"
     | Some ty -> pp fmt ":%a" print_ty ty in
   let print_t_node fmt t_node = match t_node with
-    | Tconst c -> pp fmt "%a%a" constant c print_ty t_ty
+    | Tconst c -> pp fmt "%a%a" Opprintast.constant c print_ty t_ty
     | Ttrue -> pp fmt "true%a" print_ty t_ty
     | Tfalse -> pp fmt "false%a" print_ty t_ty
     | Tvar vs ->

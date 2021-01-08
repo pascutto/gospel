@@ -246,8 +246,7 @@ let xs_subst_ty old_ts new_ts new_ty xs =
 
 (** Pretty printers *)
 
-open Opprintast
-open Fmt
+open Utils.Fmt
 
 let print_tv fmt tv =
   pp fmt (if tv.tv_name.id_str = "_" then "%a" else "'%a")

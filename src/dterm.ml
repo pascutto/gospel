@@ -423,8 +423,7 @@ let term env dt =
 
 (* Pretty printing *)
 
-open Opprintast
-open Fmt
+open Utils.Fmt
 
 (* TODO not sure if we need this. Maybe we just need this for pretty
    print dterm. The flatten part is already done in ty_of_dty. *)
@@ -470,7 +469,7 @@ let rec print_dterm fmt {dt_node; dt_dty; _} =
       None -> ()
     | Some dty -> pp fmt ":%a" print_dty dty in
   match dt_node with
-  | DTconst c -> pp fmt "%a%a" constant c print_dty dt_dty
+  | DTconst c -> pp fmt "%a%a" Opprintast.constant c print_dty dt_dty
   | DTtrue -> pp fmt "true%a" print_dty dt_dty
   | DTfalse -> pp fmt "false%a" print_dty dt_dty
   | DTvar v -> pp fmt "%a%a" Preid.pp v print_dty dt_dty

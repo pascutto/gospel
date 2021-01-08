@@ -404,7 +404,7 @@ let mk_sig_item desc loc = sig_item desc loc
 open Oparsetree
 open Upretty_printer
 open Opprintast
-open Fmt
+open Utils.Fmt
 
 let print_variant_field fmt ld =
   pp fmt "%s%a:%a"

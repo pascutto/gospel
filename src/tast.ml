@@ -40,6 +40,7 @@ let ty_of_lb_arg = function
 
 type val_spec = {
     sp_args    : lb_arg list;
+    sp_ret_typ : ty;
     sp_ret     : lb_arg list; (* can only be Lnone or Lghost *)
     sp_pre     : term list;
     sp_checks  : term list;
@@ -57,11 +58,12 @@ type val_spec = {
 
 exception DuplicatedArg of vsymbol
 
-let val_spec args ret pre checks post xpost wr cs dv pure equiv text = {
+let val_spec args ret ret_typ pre checks post xpost wr cs dv pure equiv text = {
     sp_args    = args;
+    sp_ret_typ = ret_typ;
     sp_ret     = ret;
     sp_pre     = pre;
-    sp_checks     = checks;
+    sp_checks  = checks;
     sp_post    = post;
     sp_xpost   = xpost;
     (* sp_reads   : qualid list;TODO *)
@@ -81,7 +83,7 @@ let val_spec args ret pre checks post xpost wr cs dv pure equiv text = {
    TODO:
    1 - check what to do with writes
    2 - sp_xpost sp_reads sp_alias *)
-let mk_val_spec args ret pre checks post wr cs dv equiv =
+let mk_val_spec args ret ret_typ pre checks post wr cs dv equiv =
   let add args = function
     | Lunit -> args
     | a ->
@@ -94,7 +96,7 @@ let mk_val_spec args ret pre checks post wr cs dv equiv =
   List.iter (ty_check None) pre;
   List.iter (ty_check None) checks;
   List.iter (ty_check None) post;
-  val_spec args ret pre checks post wr cs dv equiv
+  val_spec args ret ret_typ pre checks post wr cs dv equiv
 
 type val_description = {
     vd_name  : Ident.t;

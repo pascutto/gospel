@@ -562,7 +562,7 @@ let process_val_spec kid crcm ns id cty vs =
     (id.Ident.id_str = vs.sp_hd_nm.pid_str) "val specification header does \
                                        not match name";
 
-  let args, ret = val_parse_core_type ns cty in
+  let args, ret_typ = val_parse_core_type ns cty in
 
   let add_arg la env lal = match la with
     | Lunit ->
@@ -653,13 +653,13 @@ let process_val_spec kid crcm ns id cty vs =
     List.fold_left (fun acc xp -> process_xpost xp @ acc) [] vs.sp_xpost
   in
 
-  let env, ret = match vs.sp_hd_ret, ret.ty_node with
+  let env, ret = match vs.sp_hd_ret, ret_typ.ty_node with
     | [], _ -> env, []
     | _, Tyapp (ts,tyl) when is_ts_tuple ts ->
        let tyl = List.map (fun ty -> (ty,Asttypes.Nolabel)) tyl in
        process_args vs.sp_hd_ret tyl env []
     | _, _ ->
-       process_args vs.sp_hd_ret [(ret,Asttypes.Nolabel)] env [] in
+       process_args vs.sp_hd_ret [(ret_typ,Asttypes.Nolabel)] env [] in
   let post = List.map (fmla kid crcm ns env) vs.sp_post in
   if vs.sp_pure then (
     if vs.sp_diverge then error_report ~loc "a pure function cannot diverge";
@@ -667,7 +667,8 @@ let process_val_spec kid crcm ns id cty vs =
     if xpost <> [] || checks <> [] then
       error_report ~loc "a pure function cannot raise exceptions";
   );
-  mk_val_spec args ret pre checks post xpost wr cs vs.sp_diverge vs.sp_pure vs.sp_equiv vs.sp_text
+  mk_val_spec args ret ret_typ pre checks post xpost wr cs
+    vs.sp_diverge vs.sp_pure vs.sp_equiv vs.sp_text
 
 let process_val ~loc ?(ghost=false) kid crcm ns vd =
   let id = Ident.set_loc (Ident.create vd.vname.txt) vd.vname.loc in
